@@ -1,11 +1,3 @@
-resource "random_id" "rootpass" {
-  byte_length = 12
-}
-
-resource "random_id" "dbpass" {
-  byte_length = 12
-}
-
 resource "ibm_compute_vm_instance" "gitea_node" {
   hostname             = var.hostname
   domain               = var.domain

@@ -8,8 +8,6 @@ cat > /root/.gitea_password <<EOM
 gitea_admin_password="${gitea_admin_password}"
 EOM
 
-# script based on installation script found here: https://git.coolaj86.com/coolaj86/gitea-installer.sh/src/branch/master/install.bash
-
 # Add git user
 adduser git --home /var/lib/gitea --disabled-password --gecos ''
 
@@ -31,8 +29,8 @@ chmod +x /usr/bin/gitea
 # allow binding on ports lower than 1024
 setcap 'cap_net_bind_service=+ep' /usr/bin/gitea
 
-# get IP
-myip=$(hostname -I | awk '{print$1}')
+# Get compute instance public IP
+publicIp=$(curl -s https://api.service.softlayer.com/rest/v3.1/SoftLayer_Resource_Metadata/getPrimaryIpAddress | cut -d '"' -f2)
 
 # generate secret keys (used for session generation, and more crypto)
 gitea_secret_key=$(gitea generate secret SECRET_KEY)
@@ -49,7 +47,7 @@ RUN_USER = git
 
 [server]
 PROTOCOL = http
-DOMAIN = ${myip}
+DOMAIN = ${publicIp}
 ; CHANGE DOMAIN TO YOUR ACTUAL DOMAIN
 HTTP_PORT = 80
 LFS_JWT_SECRET = ${gitea_lfs_secret}
@@ -66,7 +64,7 @@ INTERNAL_TOKEN = ${gitea_internal_token}
 [mailer]
 ENABLED = true
 MAILER_TYPE = sendmail
-FROM = Gitea <gitea@${myip}.xip.io>
+FROM = Gitea <gitea@${publicIp}.xip.io>
 ; CHANGE THE DOMAIN ABOVE IN THE MAIL ADDRESS TO YOUR ACTUAL DOMAIN
 
 [oauth2]
@@ -128,7 +126,6 @@ NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target
-
 EOL
 
 ## Add MOTD for initial login
@@ -156,12 +153,20 @@ On the server:
 For help and more information, visit https://docs.gitea.io/en-us/faq/
 
 ********************************************************************************
-To delete this message of the day: rm -rf $(readlink -f ${0})
+To delete this message of the day: rm -f /etc/update-motd.d/99-gitea-info
 EOF
-
 EOL
 
 chmod +x /etc/update-motd.d/99-gitea-info
+
+## Remove annoying dynamic MOTD
+if [[ -f /etc/update-motd.d/50-motd-news]]; then
+    rm -f /etc/update-motd.d/50-motd-news
+fi 
+
+if [[ -f /etc/default/motd-news]]; then
+    rm -f /etc/default/motd-news
+fi 
 
 # Protect the compute instance
 ufw limit ssh
@@ -169,6 +174,6 @@ ufw allow https
 ufw allow http
 ufw --force enable
 
-
+## Enable and start service 
 systemctl enable gitea
 systemctl start gitea
