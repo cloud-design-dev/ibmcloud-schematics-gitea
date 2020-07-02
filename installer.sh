@@ -27,10 +27,10 @@ docker create --name=db -e MYSQL_ROOT_PASSWORD=${db_root_password} -e MYSQL_USER
 docker create --name=gitea -e USER_UID=1000 -e USER_GID=1000 -e DB_TYPE=mysql -e DB_HOST=db:3306 -e DB_NAME=gitea -e DB_USER=gitea -e DB_PASSWD=${db_password} -v gitea:/data -v /etc/timezone:/etc/timezone:ro -v /etc/localtime:/etc/localtime:ro --restart=unless-stopped --network=gitea --publish --expose 222 --expose 3000 gitea/gitea:latest
 
 ## Update firewall rules
-# ufw allow ssh
-# ufw allow http
-# ufw allow https
-# ufw --force enable
+ufw allow ssh
+ufw allow 3000
+ufw allow 222
+ufw --force enable
 
 ## Start the containers 
 docker start db
