@@ -27,7 +27,7 @@ docker create --name=gitea -e USER_UID=1000 -e USER_GID=1000 -e DB_TYPE=mysql -e
 ufw allow ssh
 ufw allow 3000
 ufw allow 222
-ufw --force enable
+ufw --force disable
 
 ## Start containers 
 docker start db
