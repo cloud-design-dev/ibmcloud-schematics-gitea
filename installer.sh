@@ -19,51 +19,12 @@ chmod +x /usr/local/bin/docker-compose
 
 ## Setup containers 
 
-cat <<EOF >/tmp/docker-compose.yml
-version: "2"
+## Create data volumes for Gitea and Mysql
+docker volume create mysql
+docker volume create gitea 
 
-networks:
-  gitea:
-    external: false
-
-services:
-  server:
-    image: gitea/gitea:latest
-    environment:
-      - USER_UID=1000
-      - USER_GID=1000
-      - DB_TYPE=mysql
-      - DB_HOST=db:3306
-      - DB_NAME=gitea
-      - DB_USER=gitea
-      - DB_PASSWD=${db_password}
-    restart: always
-    networks:
-      - gitea
-    volumes:
-      - ./gitea:/data
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-     ports:
-       - "3000:3000"
-       - "222:22"
-    depends_on:
-      - db
-
-  db:
-    image: mysql:5.7
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=${db_root_password}
-      - MYSQL_USER=gitea
-      - MYSQL_PASSWORD=${db_password}
-      - MYSQL_DATABASE=gitea
-    networks:
-      - gitea
-    volumes:
-      - ./mysql:/var/lib/mysql
-EOF
-
+docker create --name=db -e MYSQL_ROOT_PASSWORD=${db_root_password} -e MYSQL_USER=gitea -e MYSQL_PASSWORD=${db_password} -e MYSQL_DATABASE=gitea --expose 3306 -v mysql:/var/lib/mysql --network=gitea --restart=unless-stopped mysql:5.7
+docker create --name=gitea -e USER_UID=1000 -e USER_GID=1000 -e DB_TYPE=mysql -e DB_HOST=db:3306 -e DB_NAME=gitea -e DB_USER=gitea -e DB_PASSWD=${db_password} -v gitea:/data -v /etc/timezone:/etc/timezone:ro -v /etc/localtime:/etc/localtime:ro --restart=unless-stopped --network=gitea --publish --expose 222 --expose 3000 gitea/gitea:latest
 
 ## Update firewall rules
 # ufw allow ssh
@@ -72,4 +33,5 @@ EOF
 # ufw --force enable
 
 ## Start the containers 
-/usr/local/bin/docker-compose --file /tmp/docker-compose.yml up -d 
+docker start db
+docker start gitea
