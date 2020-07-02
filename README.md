@@ -13,7 +13,7 @@ Gitea version control server deployed using IBM Cloud Schematics.
 
  ## After Deployment
  Upon initial login you should see a MOTD with instructions for accessing the web interface for Gitea. Next steps:
-  - Replace the instance IP with your FQDN in the Gitea ini file at `/var/lib/gitea/conf/app.ini` 
+  - Replace the instance IP with your FQDN in the Gitea ini file at `/var/lib/gitea/conf/app.ini`
   - Log in to the web interface and add a new user
-  - Disable gitea_admin user 
+  - Disable gitea_admin user
   - Update main server settings in `/var/lib/gitea/conf/app.ini` if you wish to send invitation emails for new users
